@@ -1,0 +1,1 @@
+A Python-based Quiz Game built with Object-Oriented Programming (OOP). Features question management, interactive gameplay, and score tracking. Developed as a practical project to strengthen Python programming and software design fundamentals.
