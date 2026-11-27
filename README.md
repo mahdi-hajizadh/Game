@@ -45,12 +45,11 @@ python main.py
 On Windows PowerShell, use `python -m venv .venv` to create the environment and
 `.\.venv\Scripts\Activate.ps1` to activate it.
 
-For an existing checkout, run `python main.py` with the virtual environment active
-from the directory that contains both `main.py` and `question.json`.
+Run `python main.py` from the project directory with its virtual environment active. The game finds the bundled question bank beside the script.
 
 ## How to Play
 
-1. Enter a different name for each player.
+1. Enter a non-empty, different name for each player.
 2. Each round, a question is shown to each player in turn. Type `A`, `B`, `C`, or `D` and press Enter.
 3. After both players answer, the round results and total scores are shown. Press Enter to continue.
 4. After the final round, the game displays the winner or a draw, followed by the leaderboard.
@@ -98,11 +97,11 @@ After a successful push or manual run, download `quiz-game` from the workflow's
 **Artifacts** section. It contains the playable ZIP and excludes local scores.
 
 Pushing a new version tag matching `v*` runs the same tests and publishes the
-ZIP in GitHub Releases. Run these commands from the tested commit to publish
-`v1.1.0`.
+ZIP in GitHub Releases. For a future release, replace the example tag below with the next version and
+run these commands from the tested commit.
 
 ```bash
-git tag v1.1.0
-git push https://github.com/mahdi-hajizadh/Game.git refs/tags/v1.1.0
+git tag v1.2.0
+git push https://github.com/mahdi-hajizadh/Game.git refs/tags/v1.2.0
 ```
 

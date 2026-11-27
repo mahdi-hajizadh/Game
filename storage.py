@@ -4,7 +4,7 @@ import random
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 from typing import Optional
-QUESTION_PATH="question.json"
+QUESTION_PATH = Path(__file__).resolve().with_name("question.json")
 LEADERBOARD_PATH = Path(__file__).resolve().with_name("leaderboard.json")
 
 class QuestionBank:

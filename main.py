@@ -1,127 +1,24 @@
-from re import match
+from time import perf_counter
+
 from rich.console import Console
+from rich.markup import escape
 from rich.panel import Panel
 from rich.table import Table
 from rich.text import Text
-from time import perf_counter
-from engine import Question, Match, ROUNDS, TIME_LIMIT, BONUS, SCORE
+
+from engine import Match
 from storage import Leaderboard, QuestionBank
 
-
 console = Console()
-questions = QuestionBank()
 
-def show_menu():
-    while True:
 
-        user_input = input(
-            "Do you want to start the quiz?(yes/no) "
-        ).strip().lower()
-
-        if user_input == "yes":
-            return True
-
-        elif user_input == "no":
-
-            console.print(
-                "Exiting the quiz. Goodbye!",
-                style="yellow on black"
-            )
-
-            return False
-
-        else:
-
-            console.print(
-                "Invalid input. Please enter yes or no.",
-                style="red on white"
-            )
-
-def play_quiz(match):
-
-    while not match.is_over():
-
-        question = match.start_round()
-
-        console.print(
-            Panel(
-                f"[bold cyan]Round {match.rounds}[/bold cyan]\n\n"
-                f"{question.text}",
-                title="QUIZ GAME"
-            )
-        )
-
-        for option in question.options:
-            console.print(option)
-        for player in match.players:
-
-            console.print(
-                f"\n[bold yellow]{player}'s turn[/bold yellow]"
-            )
-
-            start_time = perf_counter()
-
-            user_answer = input("Your choice: ").strip().upper()
-
-            elapsed = perf_counter() - start_time
-
-            match.submit(player, user_answer, elapsed)
-        results = match.results_round()
-        
-        for player in match.players:
-
-            result = results[player]
-
-            console.print(
-                f"{player}: {result.status} | "
-                f"Score: +{result.score}"
-            )
-        console.print("\n[bold cyan]Current Scores[/bold cyan]")
-
-        for player in match.players:
-
-            console.print(
-                f"{player}: {match.score_of(player)}"
-            )
-def show_results(match):
-
-    table = Table(title="FINAL RESULTS")
-
-    table.add_column("Player", style="cyan")
-    table.add_column("Score", justify="center")
-
-    for player in match.players:
-
-        table.add_row(
-            player,
-            str(match.score_of(player))
-        )
-
-    console.print(table)
-
-    winner = match.winner()
-
-    if winner is None:
-
-        console.print(
-            Panel(
-                "[bold yellow]It's a Draw![/bold yellow]"
-            )
-        )
-
-    else:
-
-        console.print(
-            Panel(
-                f"[bold green]Winner: {winner}[/bold green]"
-            )
-        )
 def hand_over(player):
     console.clear()
     console.print(
-        f"\n[bold magenta]Hand over to {player}![/bold magenta]"
+        f"\n[bold magenta]Hand over to {escape(player)}![/bold magenta]"
     )
     input(f"{player}, press Enter when ready...")
+
 def ask(player, question, round_number):
     console.clear()
     console.print(
@@ -137,6 +34,7 @@ def ask(player, question, round_number):
     user_answer = input(f"\n{player}, your choice: ").strip().upper()
     elapsed = perf_counter() - start_time
     return user_answer, elapsed
+
 def show_round_results(match, results, question):
     console.clear()
     console.print(
@@ -148,32 +46,33 @@ def show_round_results(match, results, question):
     )
     for player in match.players:
         result = results[player]
-        choice , elapsed = match.answer_of(player)
-        
+        _, elapsed = match.answer_of(player)
+
         if result.status == "correct":
             console.print(
-                f"{player}: [bold green]{result.status}[/bold green] | "
+                f"{escape(player)}: [bold green]{result.status}[/bold green] | "
                 f"Score: +{result.score} | "
                 f"Time: {elapsed:.2f}s"
             )
         elif result.status == "too_late":
             console.print(
-                f"{player}: [bold yellow]{result.status}[/bold yellow] | "
+                f"{escape(player)}: [bold yellow]{result.status}[/bold yellow] | "
                 f"Score: +{result.score} | "
                 f"Time: {elapsed:.2f}s"
             )
         elif result.status == "incorrect":
             console.print(
-                f"{player}: [bold red]{result.status}[/bold red] | "
+                f"{escape(player)}: [bold red]{result.status}[/bold red] | "
                 f"Score: +{result.score} | "
                 f"Time: {elapsed:.2f}s"
             )
     for player in match.players:
         console.print(
-            f"{player}: Total Score: {match.score_of(player)}"
+            f"{escape(player)}: Total Score: {match.score_of(player)}"
         )
-        
-    input(f"\n{player}, press Enter to continue to the next round...")
+
+    input("\nPress Enter to continue...")
+
 
 def show_final_results(match):
     console.clear()
@@ -185,7 +84,7 @@ def show_final_results(match):
     )
     for player in match.players:
         console.print(
-            f"{player}: Total Score: {match.score_of(player)}"
+            f"{escape(player)}: Total Score: {match.score_of(player)}"
         )
     winner = match.winner()
     if winner is None:
@@ -197,35 +96,53 @@ def show_final_results(match):
     else:
         console.print(
             Panel(
-                f"[bold green]Winner: {winner}[/bold green]"
+                f"[bold green]Winner: {escape(winner)}[/bold green]"
             )
         )
-console.print("[bold cyan]Welcome to the Quiz Game![/bold cyan]\n")
-name1 = input("Enter name for Player 1: ").strip()
-name2 = input("Enter name for Player 2: ").strip()
-match = Match([name1, name2], questions.pick(5))
-while not match.is_over():
-    question = match.start_round()
-    for index, player in enumerate(match.players):
-        hand_over(player)
-        choice, elapsed = ask(player, question, match.rounds)
-        match.submit(player, choice, elapsed)
-    results = match.results_round()
-    show_round_results(match, results, question)
-show_final_results(match)
 
-leaderboard = Leaderboard()
-leaderboard.record(
-    match.winner(), name1, name2, match.score_of(name1), match.score_of(name2)
-)
 
-table = Table(title="LEADERBOARD")
-table.add_column("Player", style="cyan")
-table.add_column("Total Score", justify="right")
-table.add_column("Wins", justify="right")
-table.add_column("Draws", justify="right")
-for player, totals in leaderboard.top():
-    table.add_row(
-        Text(player), str(totals["score"]), str(totals["wins"]), str(totals["draws"])
+def player_name(number, other_name=None):
+    while True:
+        name = input(f"Enter name for Player {number}: ").strip()
+        if not name:
+            console.print("Enter a non-empty name.")
+        elif name == other_name:
+            console.print("Choose a different name for each player.")
+        else:
+            return name
+
+
+def main():
+    questions = QuestionBank()
+    console.print("[bold cyan]Welcome to the Quiz Game![/bold cyan]\n")
+    name1 = player_name(1)
+    name2 = player_name(2, name1)
+    match = Match([name1, name2], questions.pick(5))
+
+    while not match.is_over():
+        question = match.start_round()
+        for player in match.players:
+            hand_over(player)
+            choice, elapsed = ask(player, question, match.rounds)
+            match.submit(player, choice, elapsed)
+        show_round_results(match, match.results_round(), question)
+    show_final_results(match)
+
+    leaderboard = Leaderboard()
+    leaderboard.record(
+        match.winner(), name1, name2, match.score_of(name1), match.score_of(name2)
     )
-console.print(table)
+    table = Table(title="LEADERBOARD")
+    table.add_column("Player", style="cyan")
+    table.add_column("Total Score", justify="right")
+    table.add_column("Wins", justify="right")
+    table.add_column("Draws", justify="right")
+    for player, totals in leaderboard.top():
+        table.add_row(
+            Text(player), str(totals["score"]), str(totals["wins"]), str(totals["draws"])
+        )
+    console.print(table)
+
+
+if __name__ == "__main__":
+    main()
