@@ -2,6 +2,8 @@
 
 A Python quiz game for two players sharing one terminal. Take turns answering timed multiple-choice questions and see how your score ranks across matches. The terminal interface uses [Rich](https://github.com/Textualize/rich).
 
+Download `quiz-game.zip` from [GitHub Releases](https://github.com/mahdi-hajizadh/Game/releases/latest), extract it, then follow the environment setup and launch commands below. To work from source, start with `git clone`.
+
 ## Features
 
 - Three rounds with randomly selected multiple-choice questions
