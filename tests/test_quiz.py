@@ -60,18 +60,20 @@ class QuizTests(unittest.TestCase):
             for filename in ("main.py", "storage.py", "engine.py", "question.json"):
                 copyfile(PROJECT_DIR / filename, project / filename)
 
-            answers = "Alice\nBob\n" + "\nx\n\nx\n\n" * ROUNDS
+            answers = "\nAlice\nAlice\n[/bold]Bob\n" + "\nx\n\nx\n\n" * ROUNDS
             result = subprocess.run(
-                [sys.executable, "-B", "main.py"],
-                cwd=project,
+                [sys.executable, "-B", str(project / "main.py")],
+                cwd=project.parent,
                 input=answers,
                 text=True,
                 capture_output=True,
                 timeout=15,
             )
             self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertIn("Enter a non-empty name.", result.stdout)
+            self.assertIn("Choose a different name for each player.", result.stdout)
             self.assertIn("Final Results", result.stdout)
             self.assertIn("LEADERBOARD", result.stdout)
             saved = json.loads((project / "leaderboard.json").read_text(encoding="utf-8"))
             self.assertEqual(saved["Alice"], {"score": 0, "wins": 0, "draws": 1})
-            self.assertEqual(saved["Bob"], {"score": 0, "wins": 0, "draws": 1})
+            self.assertEqual(saved["[/bold]Bob"], {"score": 0, "wins": 0, "draws": 1})
